@@ -1,31 +1,13 @@
-﻿/* EasyTcp
- * 
- * Copyright (c) 2019 henkje
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Linq;
 using System.Threading;
 using System.Net.Sockets;
 using System.Collections.Generic;
+using EasyTcp.Common;
+using EasyTcp.Common.Packets;
+using System.Reflection;
 
 namespace EasyTcp.Server
 {
@@ -35,6 +17,16 @@ namespace EasyTcp.Server
          * ServerListener is set to null if the server is not running.*/
         private ServerListener serverListener;
 
+        private GlobalPacketLoader PacketLoader;
+        public List<IServerPacket> ServerPackets;
+
+        public EasyTcpServer(Assembly asm)
+        {
+            PacketLoader = new GlobalPacketLoader(asm);
+            ServerPackets = PacketLoader.LoadPackets<IServerPacket>();
+        }
+        public EasyTcpServer() { }
+
         /// <summary>
         /// ClientConnected, triggerd when a new client connect's.
         /// </summary>
@@ -43,6 +35,12 @@ namespace EasyTcp.Server
         /// ClientDisconnected, triggerd when a client disconnect's.
         /// </summary>
         public event EventHandler<Socket> ClientDisconnected;
+
+        /// <summary>
+        /// OnServerStarted, triggered when a server starteds.
+        /// </summary>
+        public event EventHandler<Socket> OnServerStarted;
+
         /// <summary>
         /// DataReceived, triggerd when new data is received.
         /// </summary>
@@ -233,6 +231,7 @@ namespace EasyTcp.Server
         /// <param name="data">Data to send to clients</param>
         public void BroadcastEncrypted(short data)
             => BroadcastEncrypted(BitConverter.GetBytes(data));
+
         /// <summary>
         /// Encrypt data(int) and send it to all clients.
         /// </summary>
@@ -288,6 +287,14 @@ namespace EasyTcp.Server
         /// <param name="data">Data to send to clients</param>
         public void Broadcast(short data)
             => Broadcast(BitConverter.GetBytes(data));
+
+        /// <summary>
+        /// Send data(packet) to all connected clients.
+        /// </summary>
+        /// <param name="packet">Data to send to clients</param>
+        public void Broadcast(Packet packet)
+            => Broadcast(PacketUtils.ToBytes(packet));
+
         /// <summary>
         /// Send data(int) to all connected clients.
         /// </summary>
@@ -363,6 +370,13 @@ namespace EasyTcp.Server
         public void SendEncrypted(Socket client, short data)
             => SendEncrypted(client, BitConverter.GetBytes(data));
         /// <summary>
+        /// Encrypt data(packet) and send it to 1 client.
+        /// </summary>
+        /// <param name="client">Client to send data to</param>
+        /// <param name="packet">Data to send to client</param>
+        public void SendEncrypted(Socket client, Packet packet)
+            => SendEncrypted(client, PacketUtils.ToBytes(packet));
+        /// <summary>
         /// Encrypt data(int) and send it to 1 client.
         /// </summary>
         /// <param name="client">Client to send data to</param>
@@ -426,6 +440,14 @@ namespace EasyTcp.Server
         /// <param name="data">Data to send to client</param>
         public void Send(Socket client, short data)
             => Send(client, BitConverter.GetBytes(data));
+
+        /// <summary>
+        /// Send data(packet) to 1 client.
+        /// </summary>
+        /// <param name="client">Client to send data to</param>
+        /// <param name="packet">Data to send to client</param>
+        public void Send(Socket client, Packet packet)
+            => Send(client, PacketUtils.ToBytes(packet));
         /// <summary>
         /// Send data(int) to 1 client.
         /// </summary>
@@ -507,6 +529,17 @@ namespace EasyTcp.Server
         /// <returns>The reply of the client</returns>
         public Message SendAndGetReplyEncrypted(Socket client, short data, TimeSpan timeout)
             => SendAndGetReplyEncrypted(client, BitConverter.GetBytes(data), timeout);
+
+        /// <summary>
+        /// Encrpt data(packet) and send data to 1 client, then wait for a reply from the client.
+        /// </summary>
+        /// <param name="client">Client to send data to</param>
+        /// <param name="packet">Data to send</param>
+        /// <param name="timeout">Time to wait for a reply, if time expired: return null</param>
+        /// <returns>The reply of the client</returns>
+        public Message SendAndGetReplyEncrypted(Socket client, Packet packet, TimeSpan timeout)
+            => SendAndGetReplyEncrypted(client, PacketUtils.ToBytes(packet), timeout);
+
         /// <summary>
         /// Encrpt data(int) and send data to 1 client, then wait for a reply from the client.
         /// </summary>
@@ -589,6 +622,17 @@ namespace EasyTcp.Server
         /// <returns>The reply of the client</returns>
         public Message SendAndGetReply(Socket client, short data, TimeSpan timeout)
             => SendAndGetReply(client, BitConverter.GetBytes(data), timeout);
+
+        /// <summary>
+        /// Send data(packet) to 1 client and wait for a reply from the client.
+        /// </summary>
+        /// <param name="client">Client to send data to</param>
+        /// <param name="packet">Data to send</param>
+        /// <param name="timeout">Time to wait for a reply, if time expired: return null</param>
+        /// <returns>The reply of the client</returns>
+        public Message SendAndGetReply(Socket client, Packet packet, TimeSpan timeout)
+            => SendAndGetReply(client, PacketUtils.ToBytes(packet), timeout);
+
         /// <summary>
         /// Send data(int) to 1 client and wait for a reply from the client.
         /// </summary>
@@ -679,9 +723,22 @@ namespace EasyTcp.Server
 
         /*This functions are used by the ServerListener class*/
         internal void NotifyClientConnected(Socket client) => ClientConnected?.Invoke(this, client);
+        internal void NotifyServerStarted(Socket listener) => OnServerStarted?.Invoke(this, listener);
         internal void NotifyClientDisconnected(Socket client) => ClientDisconnected?.Invoke(this, client);
         internal void NotifyDataReceived(byte[] data, Socket client) => DataReceived?.Invoke(this, new Message(data, client, Encryption, encoding));
         internal void NotifyOnError(Exception ex) { if (OnError != null) OnError(this, ex); else throw ex; }
         internal void NotifyClientRefused(RefusedClient bannedClient) => ClientRefused?.Invoke(this, bannedClient);
+
+        internal bool HasPacket(string packetType) => ServerPackets.Where(pack => pack.PacketType == packetType).Count() > 0;
+        internal IServerPacket GetPacketByPacketType(string type) => ServerPackets.Where(pack => pack.PacketType == type).FirstOrDefault();
+        public void PacketHandler(Message msg)
+        {
+            Packet pack = msg.GetPacket;
+            if (HasPacket(pack.PacketType))
+            {
+                IServerPacket packet = GetPacketByPacketType(pack.PacketType);
+                packet.Execute(msg, this);
+            }
+        }
     }
 }

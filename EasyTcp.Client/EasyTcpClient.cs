@@ -1,35 +1,29 @@
-﻿/* EasyTcp
- * 
- * Copyright (c) 2019 henkje
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
+using EasyTcp.Common;
+using EasyTcp.Common.Packets;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 
 namespace EasyTcp.Client
 {
     public class EasyTcpClient
     {
         public Socket Socket { get; private set; }
+
+        private GlobalPacketLoader PacketLoader;
+        public List<IClientPacket> ClientPackets;
+
+        public EasyTcpClient(Assembly asm)
+        {
+            PacketLoader = new GlobalPacketLoader(asm);
+            ClientPackets = PacketLoader.LoadPackets<IClientPacket>();
+        }
+        public EasyTcpClient() { }
 
         /// <summary>
         /// DataReceived, triggerd when a message is received and no other data is avaible.
@@ -39,6 +33,10 @@ namespace EasyTcp.Client
         /// OnDisconect, triggerd when a client disconnect's from the server.
         /// </summary>
         public event EventHandler<EasyTcpClient> OnDisconnect;
+        /// <summary>
+        /// OnConnected, triggerd when a client conntected to the server.
+        /// </summary>
+        public event EventHandler<EasyTcpClient> OnConnected;
         /// <summary>
         /// OnError, triggerd when an error occurs.
         /// </summary>
@@ -145,6 +143,7 @@ namespace EasyTcp.Client
             //Check if socket is connected or timout exired.
             if (Socket.Connected)
             {
+                OnConnected?.Invoke(null, this); //inform about connection on the server!
                 this.maxDataSize = maxDataSize;
                 buffer = new byte[2];
 
@@ -193,6 +192,14 @@ namespace EasyTcp.Client
         /// <param name="data">Data to send to server</param>
         public void SendEncrypted(short data)
             => SendEncrypted(BitConverter.GetBytes(data));
+
+        /// <summary>
+        /// Encrypt data(packet) and send data to server.
+        /// </summary>
+        /// <param name="packet">Data to send to server</param>
+        public void SendEncrypted(Packet packet)
+            => SendEncrypted(PacketUtils.ToBytes(packet));
+
         /// <summary>
         /// Encrypt data(int) and send data to server.
         /// </summary>
@@ -248,6 +255,14 @@ namespace EasyTcp.Client
         /// <param name="data">Data to send to server</param>
         public void Send(short data)
             => Send(BitConverter.GetBytes(data));
+
+        /// <summary>
+        /// Send data(packet) to server.
+        /// </summary>
+        /// <param name="data">Data to send to server</param>
+        public void Send(Packet packet)
+            => Send(PacketUtils.ToBytes(packet));
+
         /// <summary>
         /// Send data(int) to server.
         /// </summary>
@@ -321,6 +336,15 @@ namespace EasyTcp.Client
         public Message SendAndGetReplyEncrypted(short data, TimeSpan timeout)
             => SendAndGetReplyEncrypted(BitConverter.GetBytes(data), timeout);
         /// <summary>
+        /// Encrypt data(packet) and send data to server. Then wait for a reply from the server.
+        /// </summary>
+        /// <param name="data">Data to send to server</param>
+        /// <param name="timeout">Time to wait for a reply, if time expired: return null</param>
+        /// <returns>received data</returns>
+        public Message SendAndGetReplyEncrypted(Packet packet, TimeSpan timeout)
+            => SendAndGetReplyEncrypted(PacketUtils.ToBytes(packet), timeout);
+
+        /// <summary>
         /// Encrypt data(int) and send data to server. Then wait for a reply from the server.
         /// </summary>
         /// <param name="data">Data to send to server</param>
@@ -393,6 +417,16 @@ namespace EasyTcp.Client
         /// <returns>received data</returns>
         public Message SendAndGetReply(short data, TimeSpan timeout)
             => SendAndGetReply(BitConverter.GetBytes(data), timeout);
+
+        /// <summary>
+        /// Send data(packet) to server. Then wait for a reply from the server.
+        /// </summary>
+        /// <param name="data">Data to send to server</param>
+        /// <param name="timeout">Time to wait for a reply, if time expired: return null</param>
+        /// <returns>received data</returns>
+        public Message SendAndGetReply(Packet packet, TimeSpan timeout)
+            => SendAndGetReply(PacketUtils.ToBytes(packet), timeout);
+
         /// <summary>
         /// Send data(int) to server. Then wait for a reply from the server.
         /// </summary>
@@ -473,7 +507,6 @@ namespace EasyTcp.Client
         }
         #endregion
 
-
         private void OnReceiveLength(IAsyncResult ar)
         {
             Socket socket = ar.AsyncState as Socket;
@@ -515,6 +548,17 @@ namespace EasyTcp.Client
         {
             if (OnError != null)
                 OnError(this, ex); else throw ex;
+        }
+        internal bool HasPacket(string packetType) => ClientPackets.Where(pack => pack.PacketType == packetType).Count() > 0;
+        internal IClientPacket GetPacketByPacketType(string type) => ClientPackets.Where(pack => pack.PacketType == type).FirstOrDefault();
+        public void PacketHandler(Message msg)
+        {
+            Packet pack = msg.GetPacket;
+            if (HasPacket(pack.PacketType))
+            {
+                IClientPacket packet = GetPacketByPacketType(pack.PacketType);
+                packet.Execute(msg, this);
+            }
         }
     }
 }

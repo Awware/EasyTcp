@@ -1,30 +1,10 @@
-﻿/* EasyTcp
- * 
- * Copyright (c) 2019 henkje
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
+using EasyTcp.Common.Packets;
 
-namespace EasyTcp
+namespace EasyTcp.Common
 {
     public class Message
     {
@@ -65,6 +45,7 @@ namespace EasyTcp
         /// Convert and return the data as short(Int16).
         /// </summary>
         public short GetShort { get { return BitConverter.ToInt16(Data, 0); } }
+
         /// <summary>
         /// Convert and return the data as short(Int16).
         /// </summary>
@@ -243,6 +224,15 @@ namespace EasyTcp
                 Socket.SendAsync(e);//Write async so it won't block UI applications.
             }
         }
+
+
+        ///<summary>
+        /// Packets
+        /// </summary>
+        public Packet GetPacket { get { return PacketUtils.FromBytes(Data); } }
+        public Packet GetEncryptedPacket { get { return PacketUtils.FromBytes(encryption.Decrypt(Data)); } }
+        public void ReplyEncrypted(Packet packet) => Reply(encryption.Encrypt(PacketUtils.ToBytes(packet)));
+        public void Reply(Packet packet) => Reply(PacketUtils.ToBytes(packet));
 
         /// <summary>
         /// Return the IP of the Socket.
