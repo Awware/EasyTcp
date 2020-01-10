@@ -16,4 +16,18 @@ namespace EasyTcp.Client
             msg.Reply(new Packet(BitConverter.GetBytes(r.Next(1, 9999)), "Some packet"));
         }
     }
+    public class DataPacket : IClientPacket
+    {
+        public string PacketType => "Data";
+
+        public void Execute(Message msg, EasyTcpClient client)
+        {
+            Packet pack = msg.GetPacket;
+            BinaryBuffer buff = new BinaryBuffer(pack.RawData);
+            buff.BeginRead();
+            string name = buff.ReadStringField();
+            byte[] file = buff.ReadFileBytes();
+            System.IO.File.WriteAllBytes($"Test_{name}.txt", file);
+        }
+    }
 }

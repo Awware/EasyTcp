@@ -2,6 +2,7 @@
 using EasyTcp.Common.Packets;
 using EasyTcp.Server;
 using System;
+using System.IO;
 
 namespace Server
 {
@@ -18,6 +19,12 @@ namespace Server
             string readed = readBuffer.ReadStringField();
             readBuffer.EndRead();
             Console.WriteLine($"Some packet executed. | {readed}");
+            BinaryBuffer bin = new BinaryBuffer();
+            bin.BeginWrite();
+            bin.WriteField("AnyData.txt");
+            bin.WriteFileBytes(File.ReadAllBytes("AnyData.txt"));
+            bin.EndWrite();
+            msg.Reply(new Packet(bin.ByteBuffer, "Data"));
             //msg.Reply(new Packet(BitConverter.GetBytes(r.Next(1, 9999)), "Some packet"));
         }
     }

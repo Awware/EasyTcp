@@ -156,6 +156,13 @@ namespace EasyTcp.Common.Packets
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteFileBytes(byte[] file)
+        {
+            Write(file.Length);
+            Write(file);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Obsolete("Use WriteField if you wanna write string")]
         public void Write(string value)
         {
@@ -367,17 +374,22 @@ namespace EasyTcp.Common.Packets
             return newBuffer;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ReadStringField()
+        {
+            return ReadString(ReadInt());
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] ReadFileBytes()
+        {
+            return ReadByteArray(ReadInt());
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EndRead()
         {
             _inRead = false;
             _pointer = 0;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string ReadStringField()
-        {
-            return ReadString(ReadInt());
-        }
         #endregion
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool EofBuffer(int over = 1)

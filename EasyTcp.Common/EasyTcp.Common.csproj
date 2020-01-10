@@ -46,6 +46,7 @@
     <Compile Include="Encryption.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Packets\BinaryBuffer.cs" />
+    <Compile Include="Packets\BinaryExtensions.cs" />
     <Compile Include="Packets\BytesCompress.cs" />
     <Compile Include="Packets\GlobalPacketLoader.cs" />
     <Compile Include="Packets\Packet.cs" />
