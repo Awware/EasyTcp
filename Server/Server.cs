@@ -31,6 +31,10 @@ namespace Server
                 Console.WriteLine($"PacketType: {msg.GetPacket.PacketType}");
                 server.PacketHandler(msg);
             };
+            server.OnError += (sender, ex) =>
+            {
+                Console.WriteLine($"{ex.Message}\n{ex.StackTrace}");
+            };
             server.Start("127.0.0.1", 6124, 10);
             Task.Delay(-1).Wait();
         }

@@ -10,7 +10,7 @@ namespace EasyTcp.Common.Packets
         /// </summary>
         /// <param name="raw"></param>
         /// <param name="data"></param>
-        public static void Compress(ref byte[] raw, out byte[] data)
+        public static byte[] Compress(byte[] raw)
         {
             using (MemoryStream memory = new MemoryStream())
             {
@@ -19,11 +19,11 @@ namespace EasyTcp.Common.Packets
                 {
                     gzip.Write(raw, 0, raw.Length);
                 }
-                data = memory.ToArray();
+                return memory.ToArray();
             }
         }
 
-        public static void Decompress(ref byte[] gzip, out byte[] data)
+        public static byte[] Decompress(byte[] gzip)
         {
             using (GZipStream stream = new GZipStream(new MemoryStream(gzip), CompressionMode.Decompress))
             {
@@ -41,7 +41,7 @@ namespace EasyTcp.Common.Packets
                         }
                     }
                     while (count > 0);
-                    data = memory.ToArray();
+                    return memory.ToArray();
                 }
             }
         }

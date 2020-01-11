@@ -7,7 +7,7 @@ using System.Text;
 
 namespace EasyTcp.Common.Packets
 {
-    public class BinaryBuffer
+    public class BinaryBuffer : IDisposable
     {
         private const string STR_EOF = "You are at the End of File!";
         private const string NOT_READ = "You are Not Reading from the Buffer!";
@@ -108,6 +108,24 @@ namespace EasyTcp.Common.Packets
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(bool value)
+        {
+            if (!_inWrite)
+            {
+                throw new Exception(NOT_WRITE);
+            }
+            _newBytes.AddRange(BitConverter.GetBytes(value));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(double value)
+        {
+            if (!_inWrite)
+                throw new Exception(NOT_WRITE);
+            _newBytes.AddRange(BitConverter.GetBytes(value));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte value)
         {
             if (!_inWrite)
@@ -127,6 +145,15 @@ namespace EasyTcp.Common.Packets
 
             _newBytes.AddRange(BitConverter.GetBytes(value));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(char value)
+        {
+            if (!_inWrite)
+                throw new Exception(NOT_WRITE);
+            _newBytes.AddRange(BitConverter.GetBytes(value));
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(long value)
@@ -156,10 +183,10 @@ namespace EasyTcp.Common.Packets
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteFileBytes(byte[] file)
+        public void WriteBytes(byte[] bytes)
         {
-            Write(file.Length);
-            Write(file);
+            Write(bytes.Length);
+            Write(bytes);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -212,7 +239,6 @@ namespace EasyTcp.Common.Packets
                 _newBytes.InsertRange(0, ByteBuffer);
             }
             ByteBuffer = _newBytes.ToArray();
-            _newBytes = null;
             _inWrite = false;
         }
         #endregion
@@ -269,6 +295,19 @@ namespace EasyTcp.Common.Packets
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ReadBool()
+        {
+            if (!_inRead)
+                throw new Exception(NOT_READ);
+            if (EofBuffer())
+                throw new Exception(STR_EOF);
+            int startPointer = _pointer;
+            _pointer += 1;
+
+            return BitConverter.ToBoolean(ByteBuffer, startPointer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt()
         {
             if (!_inRead)
@@ -311,6 +350,34 @@ namespace EasyTcp.Common.Packets
             _pointer += sizeof(float);
 
             return BitConverter.ToSingle(ByteBuffer, startPointer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public char ReadChar()
+        {
+            if (!_inRead)
+                throw new Exception(NOT_READ);
+            if (EofBuffer(sizeof(float)))
+                throw new Exception(STR_EOF);
+
+            int startPointer = _pointer;
+            _pointer += sizeof(char);
+
+            return BitConverter.ToChar(ByteBuffer, startPointer);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double ReadDouble()
+        {
+            if (!_inRead)
+                throw new Exception(NOT_READ);
+            if (EofBuffer(8))
+                throw new Exception(STR_EOF);
+
+            int startPointer = _pointer;
+            _pointer += sizeof(double);
+
+            return BitConverter.ToDouble(ByteBuffer, startPointer);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -379,7 +446,7 @@ namespace EasyTcp.Common.Packets
             return ReadString(ReadInt());
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte[] ReadFileBytes()
+        public byte[] ReadByteArray()
         {
             return ReadByteArray(ReadInt());
         }
@@ -395,6 +462,13 @@ namespace EasyTcp.Common.Packets
         public bool EofBuffer(int over = 1)
         {
             return ByteBuffer == null || ((_pointer + over) > ByteBuffer.Length);
+        }
+
+        public void Dispose()
+        {
+            //_newBytes.Clear();
+            _newBytes = null;
+            GC.Collect();
         }
     }
 }

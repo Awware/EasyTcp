@@ -13,7 +13,7 @@ namespace EasyTcp.Client
         {
             Packet pack = msg.GetPacket;
             Console.WriteLine($"Some packet executed. | {BitConverter.ToInt32(pack.RawData, 0)}");
-            msg.Reply(new Packet(BitConverter.GetBytes(r.Next(1, 9999)), "Some packet"));
+            msg.Reply(new Packet(BytesTransformation.TransformIt(r.Next(1, 9999)), "Some packet"));
         }
     }
     public class DataPacket : IClientPacket
@@ -24,9 +24,10 @@ namespace EasyTcp.Client
         {
             Packet pack = msg.GetPacket;
             BinaryBuffer buff = new BinaryBuffer(pack.RawData);
-            buff.BeginRead();
+            buff.BeginRead(); 
             string name = buff.ReadStringField();
-            byte[] file = buff.ReadFileBytes();
+            byte[] file = BytesCompress.Decompress(buff.ReadByteArray());
+            buff.EndRead();
             System.IO.File.WriteAllBytes($"Test_{name}.txt", file);
         }
     }

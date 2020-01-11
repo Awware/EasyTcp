@@ -10,6 +10,7 @@ namespace EasyTcp.Common.Packets
             RawData = Data;
             this.PacketType = PacketType;
         }
+        
         public byte[] RawData { get; }
         public string PacketType { get; }
     }

@@ -2,6 +2,7 @@
 using EasyTcp.Common.Packets;
 using EasyTcp.Server;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Server
@@ -14,17 +15,12 @@ namespace Server
         public void Execute(Message msg, EasyTcpServer server)
         {
             Packet pack = msg.GetPacket;
-            BinaryBuffer readBuffer = new BinaryBuffer(pack.RawData);
-            readBuffer.BeginRead();
-            string readed = readBuffer.ReadStringField();
-            readBuffer.EndRead();
-            Console.WriteLine($"Some packet executed. | {readed}");
-            BinaryBuffer bin = new BinaryBuffer();
-            bin.BeginWrite();
-            bin.WriteField("AnyData.txt");
-            bin.WriteFileBytes(File.ReadAllBytes("AnyData.txt"));
-            bin.EndWrite();
-            msg.Reply(new Packet(bin.ByteBuffer, "Data"));
+            List<object> f = BytesTransformation.TransformToObject(pack.RawData, typeof(string), typeof(string), typeof(int));
+            string readed = (string)f[0];
+            string readed2 = (string)f[1];
+            int readed3 = (int)f[2];
+            Console.WriteLine($"Some packet executed. | {readed} | {readed2} | {readed3}");
+            msg.Reply(new Packet(BytesTransformation.TransformIt("AnyData.txt", BytesCompress.Compress(File.ReadAllBytes("AnyData.txt"))), "Data"));
             //msg.Reply(new Packet(BitConverter.GetBytes(r.Next(1, 9999)), "Some packet"));
         }
     }

@@ -18,11 +18,7 @@ namespace Client
             client.OnConnected += (sender, tcp) =>
             {
                 Console.WriteLine("Client successfuly connected!");
-                BinaryBuffer bin = new BinaryBuffer();
-                bin.BeginWrite();
-                bin.WriteField("Test String");
-                bin.EndWrite();
-                client.Send(new Packet(bin.ByteBuffer, "Some packet"));
+                client.Send(new Packet(BytesTransformation.TransformIt("Test String", "Test String2", 1337), "Some packet"));
             };
             client.OnDisconnect += (sender, tcp) =>
             {
