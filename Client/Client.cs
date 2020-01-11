@@ -18,7 +18,7 @@ namespace Client
             client.OnConnected += (sender, tcp) =>
             {
                 Console.WriteLine("Client successfuly connected!");
-                client.Send(new Packet(BytesTransformation.TransformIt("Test String", "Test String2", 1337), "Some packet"));
+                client.Send(new Packet(BytesTransformation.TransformIt("Test String", "Test String2", 1337, true), "Some packet"));
             };
             client.OnDisconnect += (sender, tcp) =>
             {
