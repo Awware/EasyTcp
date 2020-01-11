@@ -1,6 +1,7 @@
 ﻿using EasyTcp.Common;
 using EasyTcp.Common.Packets;
 using System;
+using System.Collections.Generic;
 
 namespace EasyTcp.Client
 {
@@ -23,11 +24,9 @@ namespace EasyTcp.Client
         public void Execute(Message msg, EasyTcpClient client)
         {
             Packet pack = msg.GetPacket;
-            BinaryBuffer buff = new BinaryBuffer(pack.RawData);
-            buff.BeginRead(); 
-            string name = buff.ReadStringField();
-            byte[] file = BytesCompress.Decompress(buff.ReadByteArray());
-            buff.EndRead();
+            List<object> ObjectList = BytesTransformation.TransformToObject(pack.RawData, typeof(string), typeof(byte[]));
+            string name = (string)ObjectList[0];
+            byte[] file = BytesCompress.Decompress((byte[])ObjectList[1]);
             System.IO.File.WriteAllBytes($"Test_{name}.txt", file);
         }
     }
