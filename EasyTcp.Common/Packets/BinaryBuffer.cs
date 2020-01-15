@@ -375,7 +375,7 @@ namespace EasyTcp.Common.Packets
                 throw new Exception(STR_EOF);
 
             int startPointer = _pointer;
-            _pointer += sizeof(double);
+            _pointer += 8; //8 -> sizeof(double)
 
             return BitConverter.ToDouble(ByteBuffer, startPointer);
         }
@@ -391,7 +391,8 @@ namespace EasyTcp.Common.Packets
             {
                 throw new Exception(STR_EOF);
             }
-            return new decimal(new[] { ReadInt(),
+            return new decimal(new[] { 
+                ReadInt(),
                 ReadInt(),
                 ReadInt(),
                 ReadInt()

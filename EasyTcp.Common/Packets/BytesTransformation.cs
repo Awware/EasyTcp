@@ -15,38 +15,40 @@ namespace EasyTcp.Common.Packets
                 buffer.BeginWrite();
                 foreach (var obj in objects)
                 {
-                    string objType = obj.GetType().Name;
-                    switch (objType)
+                    switch (obj)
                     {
-                        case "String":
-                            buffer.WriteField((string)obj);
+                        case string @string:
+                            buffer.WriteField(@string);
                             break;
-                        case "Int32":
-                            buffer.Write((int)obj);
+                        case int @int:
+                            buffer.Write(@int);
                             break;
-                        case "Double":
-                            buffer.Write((double)obj);
+                        case double @double:
+                            buffer.Write(@double);
                             break;
-                        case "Single":
-                            buffer.Write((float)obj);
+                        case float @float:
+                            buffer.Write(@float);
                             break;
-                        case "UInt32":
-                            buffer.Write((uint)obj);
+                        case uint @uint:
+                            buffer.Write(@uint);
                             break;
-                        case "Char":
-                            buffer.Write((char)obj);
+                        case long @long:
+                            buffer.Write(@long);
                             break;
-                        case "Boolean":
-                            buffer.Write((bool)obj);
+                        case char @char:
+                            buffer.Write(@char);
                             break;
-                        case "Byte[]":
-                            buffer.WriteBytes((byte[])obj);
+                        case bool @bool:
+                            buffer.Write(@bool);
                             break;
-                        case "Byte":
-                            buffer.Write((byte)obj);
+                        case byte[] bytes:
+                            buffer.WriteBytes(bytes);
+                            break;
+                        case byte @byte:
+                            buffer.Write(@byte);
                             break;
                         default:
-                            throw new Exception($"Unknown type [{objType}]");
+                            throw new Exception($"Unknown type [{obj}]");
                     }
                 }
                 buffer.EndWrite();
@@ -61,42 +63,31 @@ namespace EasyTcp.Common.Packets
                 buffer.BeginRead();
                 foreach (var type in types)
                 {
-                    switch (type.ToString())
-                    {
-                        case "System.String":
-                            Objects.Add(buffer.ReadStringField());
-                            break;
-                        case "System.Int32":
-                            Objects.Add(buffer.ReadInt());
-                            break;
-                        case "System.Double":
-                            Objects.Add(buffer.ReadDouble());
-                            break;
-                        case "System.Single":
-                            Objects.Add(buffer.ReadFloat());
-                            break;
-                        case "System.UInt32":
-                            Objects.Add(buffer.ReadLong());
-                            break;
-                        case "System.Char":
-                            Objects.Add(buffer.ReadChar());
-                            break;
-                        case "System.Boolean":
-                            Objects.Add(buffer.ReadBool());
-                            break;
-                        case "System.Byte[]":
-                            Objects.Add(buffer.ReadByteArray());
-                            break;
-                        case "System.Byte":
-                            Objects.Add(buffer.ReadByte());
-                            break;
-                        default:
-                            throw new Exception($"Unknown type [{type.ToString()}]");
-                    }
+                    if (type.Equals(typeof(string)))
+                        Objects.Add(buffer.ReadStringField());
+                    else if (type.Equals(typeof(int)))
+                        Objects.Add(buffer.ReadInt());
+                    else if (type.Equals(typeof(double)))
+                        Objects.Add(buffer.ReadDouble());
+                    else if (type.Equals(typeof(float)))
+                        Objects.Add(buffer.ReadFloat());
+                    else if (type.Equals(typeof(uint)) || type.Equals(typeof(long)))
+                        Objects.Add(buffer.ReadLong());
+                    else if (type.Equals(typeof(char)))
+                        Objects.Add(buffer.ReadChar());
+                    else if (type.Equals(typeof(bool)))
+                        Objects.Add(buffer.ReadBool());
+                    else if (type.Equals(typeof(byte[])))
+                        Objects.Add(buffer.ReadByteArray());
+                    else if (type.Equals(typeof(byte)))
+                        Objects.Add(buffer.ReadByte());
+                    else
+                        throw new Exception($"Unknown type [{type.ToString()}]");
                 }
                 buffer.EndRead();
             }
             return Objects;
         }
+      
     }
 }
