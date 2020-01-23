@@ -138,7 +138,7 @@ namespace EasyTcp.Client
 
             //Try to connect.
             try { Socket.BeginConnect(IP, port,null,null).AsyncWaitHandle.WaitOne(timeout); }
-            catch { Socket = null; return false; }
+            catch { Socket.EndConnect(null); Socket = null;  return false; }
 
             //Check if socket is connected or timout exired.
             if (Socket.Connected)
