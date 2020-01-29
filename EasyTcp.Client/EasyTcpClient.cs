@@ -180,6 +180,7 @@ namespace EasyTcp.Client
             get
             {
                 if (Socket == null) return false;
+                else if (Socket != null && !Socket.Connected) return false;
                 else if (Socket.Poll(0, SelectMode.SelectRead) && Socket.Available.Equals(0)) { Disconnect(true); return false; }
                 else return true;
             }

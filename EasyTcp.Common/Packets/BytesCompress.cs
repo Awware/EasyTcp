@@ -23,6 +23,8 @@ namespace EasyTcp.Common.Packets
             }
         }
 
+        public static Packet CompressPacket(byte[] data, string packettype) => new Packet(Compress(data), packettype);
+
         public static byte[] Decompress(byte[] gzip)
         {
             using (GZipStream stream = new GZipStream(new MemoryStream(gzip), CompressionMode.Decompress))

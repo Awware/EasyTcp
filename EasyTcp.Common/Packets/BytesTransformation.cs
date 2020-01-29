@@ -48,7 +48,7 @@ namespace EasyTcp.Common.Packets
                             buffer.Write(@byte);
                             break;
                         default:
-                            throw new Exception($"Unknown type [{obj}]");
+                            throw new Exception($"Unknown type [{obj.ToString()}]");
                     }
                 }
                 buffer.EndWrite();
