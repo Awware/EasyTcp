@@ -230,7 +230,7 @@ namespace EasyTcp.Common
         /// Packets
         /// </summary>
         public Packet GetPacket { get { return PacketUtils.FromBytes(Data); } }
-        public Packet GetEncryptedPacket { get { return PacketUtils.FromBytes(encryption.Decrypt(Data)); } }
+        public Packet GetDecryptedPacket { get { return PacketUtils.FromBytes(encryption.Decrypt(DataDecrypted)); } }
         public void ReplyEncrypted(Packet packet) => Reply(encryption.Encrypt(PacketUtils.ToBytes(packet)));
         public void Reply(Packet packet) => Reply(PacketUtils.ToBytes(packet));
 
