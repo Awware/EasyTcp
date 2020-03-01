@@ -32,11 +32,11 @@ namespace EasyTcp.Client
         /// <summary>
         /// OnDisconect, triggerd when a client disconnect's from the server.
         /// </summary>
-        public event EventHandler<EasyTcpClient> OnDisconnect;
+        public event EventHandler<Socket> OnDisconnect;
         /// <summary>
         /// OnConnected, triggerd when a client conntected to the server.
         /// </summary>
-        public event EventHandler<EasyTcpClient> OnConnected;
+        public event EventHandler<Socket> OnConnected;
         /// <summary>
         /// OnError, triggerd when an error occurs.
         /// </summary>
@@ -138,12 +138,12 @@ namespace EasyTcp.Client
 
             //Try to connect.
             try { Socket.BeginConnect(IP, port,null,null).AsyncWaitHandle.WaitOne(timeout); }
-            catch { Socket = null; return false; }
+            catch { Socket.EndConnect(null); Socket = null;  return false; }
 
             //Check if socket is connected or timout exired.
             if (Socket.Connected)
             {
-                OnConnected?.Invoke(null, this); //inform about connection on the server!
+                OnConnected?.Invoke(null, Socket); //inform about connection on the server!
                 this.maxDataSize = maxDataSize;
                 buffer = new byte[2];
 
@@ -169,7 +169,7 @@ namespace EasyTcp.Client
             }
             catch (Exception ex) { NotifyOnError(ex); }
 
-            if (notifyOnDisconnect) OnDisconnect?.Invoke(this, this);//Call OnDisconnect.
+            if (notifyOnDisconnect) OnDisconnect?.Invoke(this, Socket);//Call OnDisconnect.
         }
 
         /// <summary>
@@ -180,6 +180,7 @@ namespace EasyTcp.Client
             get
             {
                 if (Socket == null) return false;
+                else if (Socket != null && !Socket.Connected) return false;
                 else if (Socket.Poll(0, SelectMode.SelectRead) && Socket.Available.Equals(0)) { Disconnect(true); return false; }
                 else return true;
             }
@@ -522,7 +523,7 @@ namespace EasyTcp.Client
                 if (DataLength <= 0 || DataLength > maxDataSize) { Disconnect(true); return; }//Invalid length, close connection.
                 else socket.BeginReceive(buffer = new byte[DataLength], 0, DataLength, SocketFlags.None, OnReceiveData, socket);//Start accepting the data.
             }
-            catch (SocketException) { Disconnect(false); OnDisconnect?.Invoke(this, this); }
+            catch (SocketException) { Disconnect(false); OnDisconnect?.Invoke(this, socket); }
             catch (Exception ex) { NotifyOnError(ex); }
         }
 

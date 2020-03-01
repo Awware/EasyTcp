@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using System.Net;
 using System.Text;
 using System.Linq;
@@ -223,6 +224,39 @@ namespace EasyTcp.Server
             BannedIPs.Add(((IPEndPoint)(client ?? throw new ArgumentNullException("Could not ban client: Socket is null")).RemoteEndPoint).Address.ToString());//Add client IP to banned IPs
             Kick(client);//Kick client
         }
+        public void Ban(Socket client, TimeSpan time)
+        {
+            Ban(client);
+            UnBanTimer(time, ((IPEndPoint)client.RemoteEndPoint).Address.ToString());
+        }
+        private void UnBanTimer(TimeSpan time, string ip)
+        {
+            System.Timers.Timer timer = new System.Timers.Timer();
+            timer.Interval = time.TotalMilliseconds;
+            timer.Elapsed += (s, x) =>
+            {
+                BannedIPs.Remove(ip);
+                //Console.WriteLine($"UNBANNED : {ip}");
+                timer.Stop();
+                timer.Dispose();
+            };
+            timer.Start();
+        }
+        public void Ban(string ip)
+        {
+            BannedIPs.Add(ip);
+            Kick(GetClientByIP(ip));
+        }
+
+        public void Ban(string ip, TimeSpan time)
+        {
+            Ban(ip);
+            UnBanTimer(time, ip);
+        }
+
+        public Socket GetClientByIP(string ip) => ConnectedClients.Where(client => ((IPEndPoint)client.RemoteEndPoint).Address.ToString() == ip).FirstOrDefault();
+
+        public bool AlreadyConnected(string ip) => ConnectedClients.Where(client => ((IPEndPoint)client.RemoteEndPoint).Address.ToString() == ip).Count() > 1;
 
         #region Broadcast
         /// <summary>
