@@ -29,7 +29,7 @@ namespace Server
             server.DataReceived += (sender, msg) =>
             {
                 Console.WriteLine($"PacketType: {msg.GetPacket.PacketType}");
-                server.PacketHandler(msg);
+                server.PacketHandler(msg, false);
             };
             server.OnError += (sender, ex) =>
             {

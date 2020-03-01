@@ -52,11 +52,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EasyTcp.Common\EasyTcp.Common.csproj">
-      <Project>{D2C6C24D-0B7F-445A-8572-C88380DE278D}</Project>
+      <Project>{d2c6c24d-0b7f-445a-8572-c88380de278d}</Project>
       <Name>EasyTcp.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\EasyTcp.Server\EasyTcp.Server.csproj">
-      <Project>{CB3905AF-7B1F-4DB8-BC47-C59A55139686}</Project>
+      <Project>{cb3905af-7b1f-4db8-bc47-c59a55139686}</Project>
       <Name>EasyTcp.Server</Name>
     </ProjectReference>
   </ItemGroup>

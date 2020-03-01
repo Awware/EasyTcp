@@ -765,14 +765,16 @@ namespace EasyTcp.Server
 
         internal bool HasPacket(string packetType) => ServerPackets.Where(pack => pack.PacketType == packetType).Count() > 0;
         internal IServerPacket GetPacketByPacketType(string type) => ServerPackets.Where(pack => pack.PacketType == type).FirstOrDefault();
-        public void PacketHandler(Message msg)
+        public void PacketHandler(Message msg, bool useEncryption)
         {
-            Packet pack = msg.GetPacket;
+            Packet pack;
+            if (!useEncryption)
+                pack = msg.GetPacket;
+            else
+                pack = msg.GetDecryptedPacket;
+
             if (HasPacket(pack.PacketType))
-            {
-                IServerPacket packet = GetPacketByPacketType(pack.PacketType);
-                packet.Execute(msg, this);
-            }
+                GetPacketByPacketType(pack.PacketType).Execute(msg, this);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Client
             client.DataReceived += (sender, msg) =>
             {
                 Console.WriteLine($"PacketType: {msg.GetPacket.PacketType}");
-                client.PacketHandler(msg);
+                client.PacketHandler(msg, false);
             };
             if(!client.Connect("127.0.0.1", 6124, TimeSpan.FromSeconds(15)))
                 Console.WriteLine("Connection aborted. Timeout!");

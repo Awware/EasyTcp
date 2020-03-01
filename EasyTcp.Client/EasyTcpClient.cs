@@ -552,14 +552,16 @@ namespace EasyTcp.Client
         }
         internal bool HasPacket(string packetType) => ClientPackets.Where(pack => pack.PacketType == packetType).Count() > 0;
         internal IClientPacket GetPacketByPacketType(string type) => ClientPackets.Where(pack => pack.PacketType == type).FirstOrDefault();
-        public void PacketHandler(Message msg)
+        public void PacketHandler(Message msg, bool useEncryption)
         {
-            Packet pack = msg.GetPacket;
+            Packet pack;
+            if (!useEncryption)
+                pack = msg.GetPacket;
+            else
+                pack = msg.GetDecryptedPacket;
+
             if (HasPacket(pack.PacketType))
-            {
-                IClientPacket packet = GetPacketByPacketType(pack.PacketType);
-                packet.Execute(msg, this);
-            }
+                GetPacketByPacketType(pack.PacketType).Execute(msg, this);
         }
     }
 }
