@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+<<<<<<< Updated upstream
 using System.Runtime.Serialization.Formatters.Soap;
+=======
+using System.Runtime.Serialization.Formatters.Binary;
+>>>>>>> Stashed changes
 using System.Text;
 using System.Threading.Tasks;
 

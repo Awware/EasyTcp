@@ -11,7 +11,7 @@ namespace EasyTcp.Common.Packets
             this.PacketType = PacketType;
         }
         
-        public byte[] RawData { get; }
-        public string PacketType { get; }
+        public byte[] RawData { get; set; }
+        public string PacketType { get; set; }
     }
 }

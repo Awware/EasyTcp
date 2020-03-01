@@ -771,7 +771,7 @@ namespace EasyTcp.Server
             if (!useEncryption)
                 pack = msg.GetPacket;
             else
-                pack = msg.GetDecryptedPacket;
+                pack = Shitcurity.DecryptPacket(msg.GetPacket);
 
             if (HasPacket(pack.PacketType))
                 GetPacketByPacketType(pack.PacketType).Execute(msg, this);
