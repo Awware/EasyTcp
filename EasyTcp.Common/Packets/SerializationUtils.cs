@@ -1,12 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-<<<<<<< Updated upstream
-using System.Runtime.Serialization.Formatters.Soap;
-=======
 using System.Runtime.Serialization.Formatters.Binary;
->>>>>>> Stashed changes
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,7 +14,7 @@ namespace EasyTcp.Common.Packets
         {
             using (MemoryStream mem = new MemoryStream(bytes))
             {
-                SoapFormatter Soap = new SoapFormatter();
+                BinaryFormatter Soap = new BinaryFormatter();
                 return (T)Soap.Deserialize(mem);
             }
         }
@@ -26,7 +22,7 @@ namespace EasyTcp.Common.Packets
         {
             using (MemoryStream mem = new MemoryStream())
             {
-                SoapFormatter Soap = new SoapFormatter();
+                BinaryFormatter Soap = new BinaryFormatter();
                 Soap.Serialize(mem, obj);
                 return mem.ToArray();
             }
